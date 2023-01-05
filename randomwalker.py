@@ -69,37 +69,115 @@ class SingleSimulation:
 
         return next_pos
 
-    def calculate_r(self,seed_node, current_position, next_position, edge_sign, walker_sign, degree):
+    def signed_adjacency_matrix(self):
 
-        # For r+ Case
-        if edge_sign == '+':
-            if walker_sign == '+':
-                self.G.nodes[next_position]['r'] += (1-self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree)
-                print(self.G.nodes[next_position]['r'])
+        A = nx.to_numpy_matrix(self.G)
 
-                if seed_node == next_position:
-                    self.G.nodes[next_position]['r'] += (1 - self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree) + 1
-                    print(self.G.nodes[next_position]['r'])
+        sign = nx.get_edge_attributes(self.G,'sign')
 
-        if edge_sign == '-':
-            if walker_sign == '-':
-                self.G.nodes[next_position]['r'] += (1 - self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree)
-                print(self.G.nodes[next_position]['r'])
+        for key in sign:
+            if sign[key] == '-':
+                A[key] = -1
+        return A
 
-                if seed_node == next_position:
-                    self.G.nodes[next_position]['r'] += (1 - self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree) + 1
-                    print(self.G.nodes[next_position]['r'])
 
-        # For r- Case
-        if edge_sign == '+':
-            if walker_sign == '-':
-                self.G.nodes[next_position]['r'] -= (1 - self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree)
-                print(self.G.nodes[next_position]['r'])
+    def normalize(self):
+        degrees = [val for (node, val) in self.G.degree()]
+        D = np.diag(degrees)
+        semi_row_normalized_matrix = np.matmul(np.linalg.inv(D), self.signed_adjacency_matrix())
+        A_plus = np.zeros(semi_row_normalized_matrix.shape)
+        A_negative = np.zeros(semi_row_normalized_matrix.shape)
 
-        if edge_sign == '-':
-            if walker_sign == '+':
-                self.G.nodes[next_position]['r'] -= (1 - self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree)
-                print(self.G.nodes[next_position]['r'])
+        for x in range(semi_row_normalized_matrix.shape[0]):
+            for y in range(semi_row_normalized_matrix.shape[1]):
+                if semi_row_normalized_matrix[x,y] > 0:
+                    A_plus[x,y] = semi_row_normalized_matrix[x,y]
+                if semi_row_normalized_matrix[x,y] < 0:
+                    A_negative[x,y] = semi_row_normalized_matrix[x,y]
+
+        return A_plus, A_negative
+
+    def iterate(self,A_plus, A_negative, seed_node, c, beta, gamma, epsilon):
+        # print('APLUS A NEG')
+        # print(A_plus)
+        # print(A_negative)
+        delta = 0
+        q = np.zeros(self.G.number_of_nodes())
+        q[seed_node] = seed_node
+        # print('Q')
+        # print(q)
+        r_plus = q
+        # print(r_plus)
+        r_negative = np.zeros(self.G.number_of_nodes())
+        # print(r_negative)
+        r_prime = np.vstack((r_plus,r_negative))
+        # r_prime = np.concatenate((r_plus, r_negative))
+        # print('RPRIME')
+        # print(r_prime)
+        while np.all(delta) < epsilon:
+            r_plus = (1-c) * ((np.matmul(A_plus,r_plus) + (beta * np.matmul(A_negative,r_negative)) + ((1-gamma) * np.matmul(A_plus,r_negative))) + c*q)
+            # print("R PLUSS")
+            # print(r_plus)
+            r_negative = (1-c) * (np.matmul(A_negative,r_plus) + (gamma * np.matmul(A_plus,r_negative)) + ((1-beta) * np.matmul(A_negative,r_negative)))
+            # print('R NEGG')
+            # print(r_negative)
+            r = np.vstack((r_plus,r_negative))
+            # print(r)
+            delta = abs(r - r_prime)
+            # print('DELTA')
+            # print(delta)
+            r_prime = r
+        print('Done!')
+        print(r_plus)
+        print(r_negative)
+        print('rp - rn')
+        print(r_plus + r_negative)
+        return r_plus, r_negative
+
+
+
+
+
+
+
+
+
+
+
+    # def calculate_r(self,seed_node, current_position, next_position, edge_sign, walker_sign, degree):
+    #
+    #     # For r+ Case
+    #     if edge_sign == '+':
+    #         if walker_sign == '+':
+    #             self.G.nodes[next_position]['r'] += (1-self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree)
+    #             print(self.G.nodes[next_position]['r'])
+    #
+    #             # if seed_node == next_position:
+    #             #     self.G.nodes[next_position]['r'] += (1 - self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree) + 1
+    #             #     print(self.G.nodes[next_position]['r'])
+    #
+    #     if edge_sign == '-':
+    #         if walker_sign == '-':
+    #             self.G.nodes[next_position]['r'] += (1 - self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree)
+    #             print(self.G.nodes[next_position]['r'])
+    #             #
+    #             # if seed_node == next_position:
+    #             #     self.G.nodes[next_position]['r'] += (1 - self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree) + 1
+    #             #     print(self.G.nodes[next_position]['r'])
+    #
+    #     # For r- Case
+    #     if edge_sign == '+':
+    #         if walker_sign == '-':
+    #             self.G.nodes[next_position]['r'] -= (1 - self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree)
+    #             print(self.G.nodes[next_position]['r'])
+    #
+    #     if edge_sign == '-':
+    #         if walker_sign == '+':
+    #             self.G.nodes[next_position]['r'] -= (1 - self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree)
+    #             print(self.G.nodes[next_position]['r'])
+    #
+    #     print(f"R at {current_position} with respect to {seed_node} is: {self.G.nodes[next_position]['r']}")
+
 
     def run(self,target_node):
         visited = []
@@ -145,8 +223,5 @@ class SingleSimulation:
                 else:
                     continue
                 print(f'SRWR Sign: {self.random_walker.sign}')
-
-
-
 
 

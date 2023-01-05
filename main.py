@@ -27,11 +27,14 @@ def set_watts_strogatz(n, k, p): # Create a Watts Strogatz Network and assign si
     return G, edge_labels
 
 
-graph = set_watts_strogatz(7,5,0.05)
+graph = set_watts_strogatz(4,3,0.05)
 single_simulation = SingleSimulation(RandomWalker(0,'+',0.1),graph[0],0,5)
+single_simulation.normalize()
+single_simulation.iterate(single_simulation.normalize()[0],single_simulation.normalize()[1],1,0.15,0.2,0.2,0.1)
+
 pos = nx.spring_layout(single_simulation.G)
 nx.draw_networkx(single_simulation.G,pos,with_labels=True)
 nx.draw_networkx_edge_labels(single_simulation.G,pos,edge_labels=graph[1],font_color='red',font_weight='bold')
-single_simulation.run(4)
+
 
 plt.show()
