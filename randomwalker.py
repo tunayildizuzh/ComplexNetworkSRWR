@@ -134,51 +134,6 @@ class SingleSimulation:
         print(r_plus + r_negative)
         return r_plus, r_negative
 
-
-
-
-
-
-
-
-
-
-
-    # def calculate_r(self,seed_node, current_position, next_position, edge_sign, walker_sign, degree):
-    #
-    #     # For r+ Case
-    #     if edge_sign == '+':
-    #         if walker_sign == '+':
-    #             self.G.nodes[next_position]['r'] += (1-self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree)
-    #             print(self.G.nodes[next_position]['r'])
-    #
-    #             # if seed_node == next_position:
-    #             #     self.G.nodes[next_position]['r'] += (1 - self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree) + 1
-    #             #     print(self.G.nodes[next_position]['r'])
-    #
-    #     if edge_sign == '-':
-    #         if walker_sign == '-':
-    #             self.G.nodes[next_position]['r'] += (1 - self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree)
-    #             print(self.G.nodes[next_position]['r'])
-    #             #
-    #             # if seed_node == next_position:
-    #             #     self.G.nodes[next_position]['r'] += (1 - self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree) + 1
-    #             #     print(self.G.nodes[next_position]['r'])
-    #
-    #     # For r- Case
-    #     if edge_sign == '+':
-    #         if walker_sign == '-':
-    #             self.G.nodes[next_position]['r'] -= (1 - self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree)
-    #             print(self.G.nodes[next_position]['r'])
-    #
-    #     if edge_sign == '-':
-    #         if walker_sign == '+':
-    #             self.G.nodes[next_position]['r'] -= (1 - self.random_walker.c) * (self.G.nodes[current_position]['r'] / degree)
-    #             print(self.G.nodes[next_position]['r'])
-    #
-    #     print(f"R at {current_position} with respect to {seed_node} is: {self.G.nodes[next_position]['r']}")
-
-
     def run(self,target_node):
         visited = []
         pos_init = self.random_walker.position
