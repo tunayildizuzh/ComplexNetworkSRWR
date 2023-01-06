@@ -2,6 +2,9 @@ import random
 import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
+from readdata import set_G
+users = set_G()[3]
+edges = set_G()[4]
 
 class RandomWalker:
 
@@ -70,14 +73,13 @@ class SingleSimulation:
         return next_pos
 
     def signed_adjacency_matrix(self):
-
+        nodes = list(self.G.nodes())
         A = nx.to_numpy_matrix(self.G)
-
         sign = nx.get_edge_attributes(self.G,'sign')
-
         for key in sign:
             if sign[key] == '-':
-                A[key] = -1
+                A[int(nodes.index(key[0])),int(nodes.index(key[1]))] = -1
+
         return A
 
 
@@ -98,41 +100,27 @@ class SingleSimulation:
         return A_plus, A_negative
 
     def iterate(self,A_plus, A_negative, seed_node, c, beta, gamma, epsilon):
-        # print('APLUS A NEG')
-        # print(A_plus)
-        # print(A_negative)
+
+        nodes = list(self.G.nodes())
         delta = 0
         q = np.zeros(self.G.number_of_nodes())
-        q[seed_node] = seed_node
-        # print('Q')
-        # print(q)
+        q[nodes.index(seed_node)] = seed_node
         r_plus = q
-        # print(r_plus)
         r_negative = np.zeros(self.G.number_of_nodes())
-        # print(r_negative)
         r_prime = np.vstack((r_plus,r_negative))
-        # r_prime = np.concatenate((r_plus, r_negative))
-        # print('RPRIME')
-        # print(r_prime)
+
         while np.all(delta) < epsilon:
             r_plus = (1-c) * ((np.matmul(A_plus,r_plus) + (beta * np.matmul(A_negative,r_negative)) + ((1-gamma) * np.matmul(A_plus,r_negative))) + c*q)
-            # print("R PLUSS")
-            # print(r_plus)
             r_negative = (1-c) * (np.matmul(A_negative,r_plus) + (gamma * np.matmul(A_plus,r_negative)) + ((1-beta) * np.matmul(A_negative,r_negative)))
-            # print('R NEGG')
-            # print(r_negative)
             r = np.vstack((r_plus,r_negative))
-            # print(r)
             delta = abs(r - r_prime)
-            # print('DELTA')
-            # print(delta)
+
             r_prime = r
         print('Done!')
-        print(r_plus)
-        print(r_negative)
         print('rp - rn')
         print(r_plus + r_negative)
         return r_plus, r_negative
+
 
     def run(self,target_node):
         visited = []

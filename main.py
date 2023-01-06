@@ -4,6 +4,7 @@ import random
 from randomwalker import SingleSimulation
 from randomwalker import RandomWalker
 import scipy
+from readdata import set_G
 
 
 def set_watts_strogatz(n, k, p): # Create a Watts Strogatz Network and assign signs to its edges.
@@ -27,7 +28,7 @@ def set_watts_strogatz(n, k, p): # Create a Watts Strogatz Network and assign si
     return G, edge_labels
 
 
-graph = set_watts_strogatz(4,3,0.05)
+graph = set_watts_strogatz(5,3,0.05)
 single_simulation = SingleSimulation(RandomWalker(0,'+',0.1),graph[0],0,5)
 single_simulation.normalize()
 single_simulation.iterate(single_simulation.normalize()[0],single_simulation.normalize()[1],1,0.15,0.2,0.2,0.1)
@@ -38,3 +39,17 @@ nx.draw_networkx_edge_labels(single_simulation.G,pos,edge_labels=graph[1],font_c
 
 
 plt.show()
+
+
+
+
+# graph2 = set_G()
+# print(f'Seed Node: {graph2[2]}')
+# sim2 = SingleSimulation(RandomWalker(0,'+',0.1), graph2[0],0,5)
+# sim2.normalize()
+# sim2.iterate(sim2.normalize()[0],sim2.normalize()[1],graph2[2], 0.15,0.2,0.2,0.1)
+#
+# pos = nx.spring_layout(sim2.G)
+# nx.draw_networkx(sim2.G,pos,with_labels=True)
+# nx.draw_networkx_edge_labels(sim2.G,pos,edge_labels=graph2[1],font_color='red',font_weight='bold')
+# plt.show()
