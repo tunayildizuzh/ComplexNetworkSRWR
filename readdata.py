@@ -5,7 +5,7 @@ from collections import OrderedDict
 import random
 
 def set_G():
-    data = np.genfromtxt("/Users/tunayildiz/Desktop/UZH/ComplexNetworkSRWR/dataset/BTCAlphaNet.csv", delimiter=",", dtype=float)[0:20]
+    data = np.genfromtxt("/Users/tunayildiz/Desktop/UZH/ComplexNetworkSRWR/dataset/BTCAlphaNet.csv", delimiter=",", dtype=float)[0:1000]
     np.random.shuffle(data)
     # print(f'DATA0: {data[0]}')
 

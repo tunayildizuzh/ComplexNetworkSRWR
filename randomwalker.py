@@ -10,10 +10,14 @@ edges = set_G()[4]
 
 class Simulation:
 
-    def __init__(self, G, seed_node):
+    def __init__(self, G, seed_node,c,beta,gamma,epsilon):
         self.seed_node = seed_node
         self.G = G
         self.nodes = list(self.G.nodes())
+        self.c = c
+        self.beta = beta
+        self.gamma = gamma
+        self.epsilon = epsilon
 
     def signed_adjacency_matrix(self):
         global nodes
@@ -45,13 +49,13 @@ class Simulation:
 
         return A_plus, A_negative
 
-    def iterate(self,A_plus, A_negative, seed_node, c, beta, gamma, epsilon):
+    def iterate(self,A_plus, A_negative, seed_node):
 
         nodes = list(self.G.nodes())
         delta = 0
         q = np.zeros(self.G.number_of_nodes())
         q[nodes.index(seed_node)] = 1
-        print(f'q:{q}')
+        # print(f'q:{q}')
         r_plus = q
         r_negative = np.zeros(self.G.number_of_nodes())
         r_prime = np.vstack((r_plus,r_negative))
@@ -65,8 +69,8 @@ class Simulation:
 
             # r_plus = (1-c) * ((np.matmul(A_plus,r_plus)) + (np.matmul(A_negative,r_negative))) + c*q
             # r_negative = (1-c) * ((np.matmul(A_negative,r_plus)) + (np.matmul(A_plus,r_negative)))
-            r_plus = ((1-c) * (np.matmul(A_plus,r_plus) + (beta * np.matmul(A_negative,r_negative)) + ((1-gamma) * np.matmul(A_plus,r_negative)))) + c*q
-            r_negative = (1-c) * ((np.matmul(A_negative,r_plus) + (gamma * np.matmul(A_plus,r_negative)) + ((1-beta) * np.matmul(A_negative,r_negative))))
+            r_plus = ((1-self.c) * (np.matmul(A_plus,r_plus) + (self.beta * np.matmul(A_negative,r_negative)) + ((1-self.gamma) * np.matmul(A_plus,r_negative)))) + self.c*q
+            r_negative = (1-self.c) * ((np.matmul(A_negative,r_plus) + (self.gamma * np.matmul(A_plus,r_negative)) + ((1-self.beta) * np.matmul(A_negative,r_negative))))
             r = np.vstack((r_plus,r_negative))
             delta = abs(r - r_prime)
             # print(f'delta:{delta}')
@@ -74,7 +78,7 @@ class Simulation:
 
         # print(f'r_plus:{r_plus}')
         # print(f'r_negative:{r_negative}')
-        print(f"rp-rn: {r_plus - r_negative}")
+        # print(f"rp-rn: {r_plus - r_negative}")
         return r_plus, r_negative
 
     def remove_edge(self,node=0):
