@@ -1,12 +1,13 @@
 import numpy as np
 import networkx as nx
 import matplotlib.pyplot as plt
+from collections import OrderedDict
 import random
 
 def set_G():
-    data = np.genfromtxt("/Users/tunayildiz/Desktop/UZH/ComplexNetworkSRWR/dataset/BTCAlphaNet.csv", delimiter=",", dtype=float)[0:50]
+    data = np.genfromtxt("/Users/tunayildiz/Desktop/UZH/ComplexNetworkSRWR/dataset/BTCAlphaNet.csv", delimiter=",", dtype=float)[0:20]
     np.random.shuffle(data)
-
+    # print(f'DATA0: {data[0]}')
 
     users = []
     edges = []
@@ -36,9 +37,3 @@ def set_G():
         edge_labels[i,x] = attr['sign']
 
     return G, edge_labels, seed_node, users, edges
-
-
-# pos = nx.spring_layout(set_G()[0])
-# nx.draw_networkx(set_G()[0],pos)
-# nx.draw_networkx_edge_labels(set_G()[0],pos,edge_labels=set_G()[1],font_color='red',font_weight='bold')
-# plt.show()

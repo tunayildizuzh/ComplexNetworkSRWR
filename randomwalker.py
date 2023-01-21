@@ -3,85 +3,31 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 from readdata import set_G
+from collections import OrderedDict
 users = set_G()[3]
 edges = set_G()[4]
 
-class RandomWalker:
 
-    """" Signed Random Walker with Reset agent class.
+class Simulation:
 
-        Parameters:
-
-        position = int
-        Current position of the Signed Random Walker
-
-        sign = string
-        + or - depending on the node the agent is on.
-
-        c: float
-        Determines the rate of jump to the rate of reset
-    """
-
-    def __init__(self,position, sign,c):
-
-        self.position = position
-        self.sign = sign
-        self.c = c
-
-
-
-class SingleSimulation:
-
-    """
-    Walking of a single signed random walker.
-
-    Parameters:
-
-        random_walker: RandomWalker
-            An instance of a Signed Random Walker with Reset
-
-        G: nx.Graph
-            Networkx Graph where the walkers jumps through
-
-        lambda_: float
-            rate of the walk. Chosen from an exponential distribution
-
-        t_start: float
-            Starting of the simulation
-
-        t_end: float
-            End of the simulation
-    """
-
-    def __init__(self, random_walker, G, t_start = 0, t_end = 10):
-
-        self.random_walker = random_walker
+    def __init__(self, G, seed_node):
+        self.seed_node = seed_node
         self.G = G
-        self.t_start = t_start
-        self.t_end = t_end
-        self.path = []
-
-
-
-    def get_next_event(self):
-
-        next_pos = random.choice(list(self.G.neighbors(self.random_walker.position)))
-
-        if next_pos == self.random_walker.position:
-            self.get_next_event()
-
-        return next_pos
+        self.nodes = list(self.G.nodes())
 
     def signed_adjacency_matrix(self):
+        global nodes
         nodes = list(self.G.nodes())
         A = nx.to_numpy_matrix(self.G)
         sign = nx.get_edge_attributes(self.G,'sign')
         for key in sign:
             if sign[key] == '-':
                 A[int(nodes.index(key[0])),int(nodes.index(key[1]))] = -1
-
+                A[int(nodes.index(key[1])), int(nodes.index(key[0]))] = -1
+            if sign[key] != '+' and sign[key] != '-':
+                A[int(nodes.index(key[0])), int(nodes.index(key[1]))] = 0
+                A[int(nodes.index(key[1])), int(nodes.index(key[0]))] = 0
         return A
-
 
     def normalize(self):
         degrees = [val for (node, val) in self.G.degree()]
@@ -104,67 +50,53 @@ class SingleSimulation:
         nodes = list(self.G.nodes())
         delta = 0
         q = np.zeros(self.G.number_of_nodes())
-        q[nodes.index(seed_node)] = seed_node
+        q[nodes.index(seed_node)] = 1
+        print(f'q:{q}')
         r_plus = q
         r_negative = np.zeros(self.G.number_of_nodes())
         r_prime = np.vstack((r_plus,r_negative))
+        # print(f'r_prime:{r_prime}')
+        # epsilon_np = np.zeros((r_prime.shape))
+        # epsilon_np[:] = epsilon
 
-        while np.all(delta) < epsilon:
-            r_plus = (1-c) * ((np.matmul(A_plus,r_plus) + (beta * np.matmul(A_negative,r_negative)) + ((1-gamma) * np.matmul(A_plus,r_negative))) + c*q)
-            r_negative = (1-c) * (np.matmul(A_negative,r_plus) + (gamma * np.matmul(A_plus,r_negative)) + ((1-beta) * np.matmul(A_negative,r_negative)))
+        for i in range(50):
+        # while np.all(delta<epsilon):
+
+
+            # r_plus = (1-c) * ((np.matmul(A_plus,r_plus)) + (np.matmul(A_negative,r_negative))) + c*q
+            # r_negative = (1-c) * ((np.matmul(A_negative,r_plus)) + (np.matmul(A_plus,r_negative)))
+            r_plus = ((1-c) * (np.matmul(A_plus,r_plus) + (beta * np.matmul(A_negative,r_negative)) + ((1-gamma) * np.matmul(A_plus,r_negative)))) + c*q
+            r_negative = (1-c) * ((np.matmul(A_negative,r_plus) + (gamma * np.matmul(A_plus,r_negative)) + ((1-beta) * np.matmul(A_negative,r_negative))))
             r = np.vstack((r_plus,r_negative))
             delta = abs(r - r_prime)
-
+            # print(f'delta:{delta}')
             r_prime = r
-        print('Done!')
-        print('rp - rn')
-        print(r_plus + r_negative)
+
+        # print(f'r_plus:{r_plus}')
+        # print(f'r_negative:{r_negative}')
+        print(f"rp-rn: {r_plus - r_negative}")
         return r_plus, r_negative
 
+    def remove_edge(self,node=0):
 
-    def run(self,target_node):
-        visited = []
-        pos_init = self.random_walker.position
-        visited.append(pos_init)
-        idx = 0
-        # while self.t_start <= self.t_end:
+        neighs = list(nx.neighbors(self.G, node))
+        random_neighbor = random.choice(neighs)
 
-        while target_node != self.random_walker.position:
+        if int(node) < int(random_neighbor):
+            if nx.get_edge_attributes(self.G,'sign')[node,random_neighbor] != '?':
+                self.G.add_edge(node,random_neighbor,sign = '?')
+            else:
+                self.remove_edge()
+        if int(node) > int(random_neighbor):
+            if nx.get_edge_attributes(self.G,'sign')[random_neighbor,node] != '?':
+                self.G.add_edge(random_neighbor,node,sign = '?')
+            else:
+                self.remove_edge()
 
-            reset_prop = random.uniform(0,1)
-            if reset_prop < self.random_walker.c: # Reset Case.
-                self.random_walker.position = pos_init
-                self.random_walker.sign = '+'
-                print(f'Reset. Current position: {pos_init}')
-                visited = [visited[0]]
 
-            else: # Jump Case.
 
-                next_position = self.get_next_event()
 
-                if next_position not in visited:
-                    visited.append(next_position)
-                    # (self,seed_node, current_position, next_position, edge_sign, walker_sign, degree):
-                    self.calculate_r(0,self.random_walker.position,next_position,self.G.edges[self.random_walker.position, next_position]['sign'],self.random_walker.sign,self.G.degree(self.random_walker.position))
 
-                    if self.G.edges[self.random_walker.position, next_position]['sign'] == '-':
-                        if self.random_walker.sign == '+':
-                            self.random_walker.sign = '-'
-                        elif self.random_walker.sign == '-':
-                            self.random_walker.sign = '+'
-                    elif self.G.edges[self.random_walker.position, next_position]['sign'] == '+':
-                        if self.random_walker.sign == '+':
-                            self.random_walker.sign = '+'
-                        elif self.random_walker.sign == '-':
-                            self.random_walker.sign = '-'
 
-                    # self.calculate_r(0,self.random_walker.position,next_position,self.G.edges[self.random_walker.position, next_position]['sign'],self.random_walker.sign,self.G.degree(self.random_walker.position))
-
-                    print(f"From: {self.random_walker.position}, To: {next_position}, Edge Sign: {self.G.edges[int(self.random_walker.position), int(next_position)]['sign']} ")
-                    self.random_walker.position = next_position
-                    self.t_start += 1
-                else:
-                    continue
-                print(f'SRWR Sign: {self.random_walker.sign}')
 
 
