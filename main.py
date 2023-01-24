@@ -35,23 +35,9 @@ def set_watts_strogatz(n, k, p): # Create a Watts Strogatz Network and assign si
     # print(f'edgelabels: {edge_labels}')
     return G, edge_attr
 
-# def comparison_dict(seed_node):
-#     comparison = {}
-#     rd = sim2.iterate(sim2.normalize()[0], sim2.normalize()[1], graph2[2])[0] - \
-#          sim2.iterate(sim2.normalize()[0], sim2.normalize()[1], graph2[2])[1]
-#     for idx, val in enumerate(sim2.nodes):
-#         comparison[seed_node,val] = rd[idx]
-#
-#     for a,b in comparison:
-#         if comparison[a,b] > 0:
-#             comparison[a,b] = '+'
-#         else:
-#             comparison[a,b] = '-'
-#
-#
-#     return comparison
 
-def comparison_dict2(seed_node,rd_val,graph_nodes):
+
+def comparison_dict(seed_node,rd_val,graph_nodes):
     comparison = {}
 
     for idx, val in enumerate(graph_nodes):
@@ -66,25 +52,12 @@ def comparison_dict2(seed_node,rd_val,graph_nodes):
 
     return comparison
 
-# def accuracy():
-#     count = 0
-#     true = 0
-#
-#     comparison = comparison_dict(graph2[2])
-#     for a,b in edge_attributes:
-#             if a == graph2[2]:
-#                 count+=1
-#                 if edge_attributes[a,b] == comparison[a,b]:
-#                     true+=1
-#     accuracy_percentage = (true/count) * 100
-#
-#     return accuracy_percentage
 
-def accuracy2(seed_node,rd_val,graph_nodes,edge_attributes):
+def accuracy(seed_node,rd_val,graph_nodes,edge_attributes):
     count = 0
     true = 0
 
-    comparison = comparison_dict2(seed_node,rd_val,graph_nodes)
+    comparison = comparison_dict(seed_node,rd_val,graph_nodes)
     for a,b in edge_attributes:
             if a == seed_node:
                 count+=1
@@ -100,18 +73,20 @@ def accuracy2(seed_node,rd_val,graph_nodes,edge_attributes):
 Part 1: Working with a synthetic network to check if SRWR works.
 """
 #
-# graph = set_watts_strogatz(4,4,0.05)
-# simulation = Simulation(graph[0],seed_node=1)
+# graph = set_watts_strogatz(10,4,0.05)
+# simulation = Simulation(graph[0],seed_node=1,c=0.15,beta=0.1,gamma=0.1,epsilon=0.1)
 #
 #
 # print(f"Initial State: {nx.get_edge_attributes(simulation.G,'sign')}")
 # print(simulation.nodes)
-# simulation.remove_edge(1)
+# simulation.remove_edge(simulation.seed_node,0.5)
 #
 # simulation.normalize()
-# simulation.iterate(simulation.normalize()[0],simulation.normalize()[1],simulation.seed_node,0.15,0.1,0.1,0.005)
-# simulation.remove_edge(simulation.seed_node)
+# iterate = simulation.iterate(simulation.normalize()[0],simulation.normalize()[1],simulation.seed_node)
+# rd = iterate[1] - iterate[0]
+#
 # edge_attr = nx.get_edge_attributes(simulation.G,'sign')
+# print(f'Accuracy Percentage: {accuracy(simulation.seed_node,rd,simulation.nodes,edge_attr)}%')
 # print(edge_attr)
 #
 #
@@ -119,66 +94,63 @@ Part 1: Working with a synthetic network to check if SRWR works.
 # nx.draw_networkx(simulation.G,pos,with_labels=True)
 # nx.draw_networkx_edge_labels(simulation.G,pos,edge_labels=edge_attr,font_color='red',font_weight='bold')
 # plt.show()
-
+#
 
 
 
 """
 Part 2: Use a real network for SRWR application.
 """
-# graph2 = set_G()
-#
-# print(f'Seed Node: {graph2[2]}')
-# sim2 = Simulation(graph2[0],seed_node=graph2[2],c=0.15,beta=0.3,gamma=0.5,epsilon=0.1)
-# edge_attributes = nx.get_edge_attributes(sim2.G,'sign')
-# # print(f"Initial State: {edge_attributes}")
-# # print(sim2.nodes)
-# # print(f'edges:{graph2[4]}')
-#
-# sim2.normalize()
-# sim2.iterate(sim2.normalize()[0],sim2.normalize()[1],graph2[2])
-# # sim2.remove_edge(node=graph2[2])
-# # sim2.remove_edge(node=graph2[2])
-# edge_attr = nx.get_edge_attributes(sim2.G,'sign')
-# rd = sim2.iterate(sim2.normalize()[0],sim2.normalize()[1],graph2[2])[0] - sim2.iterate(sim2.normalize()[0],sim2.normalize()[1],graph2[2])[1]
-# zipped_values = list(zip(sim2.nodes,rd))
-# # print(f'ZIPPED: {zipped_values}')
-# # edge_attr_sim2 = nx.get_edge_attributes(sim2.G,'sign')
-# # print(f"Edge Attributes: {edge_attr_sim2}")
-# print(f"Accuracy Percentage: {accuracy()}%")
-# # pos = nx.spring_layout(sim2.G)
-# # nx.draw_networkx(sim2.G,pos,with_labels=True)
-# # nx.draw_networkx_edge_labels(sim2.G,pos,edge_labels=edge_attr,font_color='red',font_weight='bold')
-# # plt.show()
 
+graph_network = set_G()
+def run(beta, gamma, epsilon,step=0): # 0.3,0.5,0.1
 
-def run(beta, gamma, epsilon): # 0.3,0.5,0.1
-    graph_network = set_G()
     print(f'Seed Node: {graph_network[2]}')
     simulate = Simulation(graph_network[0],seed_node=graph_network[2],c=0.15,beta=beta,gamma=gamma,epsilon=epsilon)
     edge_attributes = nx.get_edge_attributes(simulate.G, 'sign')
+    if step == 1:
+        simulate.remove_edge(simulate.seed_node,0.1)
     simulate.normalize()
-    simulate.iterate(simulate.normalize()[0],simulate.normalize()[1],graph_network[2])
-    rd = simulate.iterate(simulate.normalize()[0], simulate.normalize()[1], graph_network[2])[0] - simulate.iterate(simulate.normalize()[0], simulate.normalize()[1], graph_network[2])[1]
+    iterate = simulate.iterate(simulate.normalize()[0],simulate.normalize()[1],graph_network[2])
+    rd = iterate[1] - iterate[0]
+    print(f'Accuracy Percentage: {accuracy(graph_network[2],rd,simulate.nodes,edge_attributes)}%')
+    return accuracy(graph_network[2],rd,simulate.nodes,edge_attributes)
 
-    print(f'Accuracy Percentage: {accuracy2(graph_network[2],rd,simulate.nodes,edge_attributes)}%')
-    return accuracy2(graph_network[2],rd,simulate.nodes,edge_attributes)
 
-
-parameter_values = np.arange(0.1,1.1,0.1)
+parameter_values = np.arange(1,11,1)
 accuracies = np.zeros((10,10))
 
 for index,value in enumerate(parameter_values): # X = beta Y = Gamma
     for index2,value2 in enumerate(parameter_values):
+        print(f'beta,gamma: {value,value2}')
         accuracies[index,index2] = run(value,value2,0.1)
 
-print(accuracies)
+param = np.where(accuracies == np.amax(accuracies))
+print(f'PARAM: {param}')
 
-df = pd.DataFrame(accuracies)
+run(param[0][0],param[1][0],0.1,1)
 
-ax = sns.heatmap(df, annot = True)
-ax.set(xlabel='Beta',ylabel='Gamma')
-plt.show()
 
+''' 
+BETA, GAMMA PARAMETER SELECTION
+
+# parameter_values = np.arange(1,11,1)
+# accuracies = np.zeros((10,10))
+# 
+# for index,value in enumerate(parameter_values): # X = beta Y = Gamma
+#     for index2,value2 in enumerate(parameter_values):
+#         print(f'beta,gamma: {value,value2}')
+#         accuracies[index,index2] = run(value,value2,0.1)
+# 
+# 
+# plt.savefig('accuracies_parameter.png')
+# df = pd.DataFrame(accuracies)
+# 
+# ax = sns.heatmap(df, annot = True)
+# ax.set(xlabel='Beta',ylabel='Gamma')
+# 
+# plt.show()
+
+'''
 
 

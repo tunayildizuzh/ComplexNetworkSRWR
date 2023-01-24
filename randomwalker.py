@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 from readdata import set_G
+from random import sample
 from collections import OrderedDict
 users = set_G()[3]
 edges = set_G()[4]
@@ -52,50 +53,62 @@ class Simulation:
     def iterate(self,A_plus, A_negative, seed_node):
 
         nodes = list(self.G.nodes())
-        delta = 0
         q = np.zeros(self.G.number_of_nodes())
         q[nodes.index(seed_node)] = 1
-        # print(f'q:{q}')
         r_plus = q
         r_negative = np.zeros(self.G.number_of_nodes())
         r_prime = np.vstack((r_plus,r_negative))
-        # print(f'r_prime:{r_prime}')
-        # epsilon_np = np.zeros((r_prime.shape))
-        # epsilon_np[:] = epsilon
+        delta = 500
+
+
 
         for i in range(50):
-        # while np.all(delta<epsilon):
-
+        # while np.all(delta<self.epsilon) == False:
 
             # r_plus = (1-c) * ((np.matmul(A_plus,r_plus)) + (np.matmul(A_negative,r_negative))) + c*q
             # r_negative = (1-c) * ((np.matmul(A_negative,r_plus)) + (np.matmul(A_plus,r_negative)))
-            r_plus = ((1-self.c) * (np.matmul(A_plus,r_plus) + (self.beta * np.matmul(A_negative,r_negative)) + ((1-self.gamma) * np.matmul(A_plus,r_negative)))) + self.c*q
-            r_negative = (1-self.c) * ((np.matmul(A_negative,r_plus) + (self.gamma * np.matmul(A_plus,r_negative)) + ((1-self.beta) * np.matmul(A_negative,r_negative))))
+            r_plus = ((1-self.c) * (np.matmul(A_plus,r_plus) + (self.beta * np.matmul(A_negative,r_negative)) + ((10-self.gamma) * np.matmul(A_plus,r_negative)))) + self.c*q
+            r_negative = (1-self.c) * ((np.matmul(A_negative,r_plus) + (self.gamma * np.matmul(A_plus,r_negative)) + ((10-self.beta) * np.matmul(A_negative,r_negative))))
             r = np.vstack((r_plus,r_negative))
             delta = abs(r - r_prime)
+            # print(f'DELTA: {delta}')
             # print(f'delta:{delta}')
             r_prime = r
+
+
 
         # print(f'r_plus:{r_plus}')
         # print(f'r_negative:{r_negative}')
         # print(f"rp-rn: {r_plus - r_negative}")
         return r_plus, r_negative
 
-    def remove_edge(self,node=0):
+    def remove_edge(self,node=0, percent = 0.2):
+        degree = sorted(self.G.degree, key=lambda asd: asd[1], reverse=True)
+        print(f'remove edge degree: {degree[0]}')
 
-        neighs = list(nx.neighbors(self.G, node))
-        random_neighbor = random.choice(neighs)
+        deleted_edge_count = int(degree[0][1] * percent)
+        print(f'DELETED {deleted_edge_count}')
+        # neighs = list(nx.neighbors(self.G, node))
+        neighs = list(self.G.neighbors(node))
+        random_neighbor_list = sample(neighs,deleted_edge_count)
+        for random_neighbor in random_neighbor_list:
+            if int(node) < int(random_neighbor):
+                if (node,random_neighbor) in nx.get_edge_attributes(self.G,'sign'):
+                    if nx.get_edge_attributes(self.G,'sign')[int(node),int(random_neighbor)] != '?':
+                        self.G.add_edge(int(node),int(random_neighbor),sign = '?')
+                    else:
+                        continue
+                else:
+                    continue
 
-        if int(node) < int(random_neighbor):
-            if nx.get_edge_attributes(self.G,'sign')[node,random_neighbor] != '?':
-                self.G.add_edge(node,random_neighbor,sign = '?')
-            else:
-                self.remove_edge()
-        if int(node) > int(random_neighbor):
-            if nx.get_edge_attributes(self.G,'sign')[random_neighbor,node] != '?':
-                self.G.add_edge(random_neighbor,node,sign = '?')
-            else:
-                self.remove_edge()
+            if int(node) > int(random_neighbor):
+                if (node, random_neighbor) in nx.get_edge_attributes(self.G, 'sign'):
+                    if nx.get_edge_attributes(self.G,'sign')[int(random_neighbor),int(node)] != '?':
+                        self.G.add_edge(int(random_neighbor),int(node),sign = '?')
+                    else:
+                        continue
+                else:
+                    continue
 
 
 

@@ -5,13 +5,14 @@ from collections import OrderedDict
 import random
 
 def set_G():
-    data = np.genfromtxt("/Users/tunayildiz/Desktop/UZH/ComplexNetworkSRWR/dataset/BTCAlphaNet.csv", delimiter=",", dtype=float)[0:1000]
+    data = np.genfromtxt("/Users/tunayildiz/Desktop/UZH/ComplexNetworkSRWR/dataset/BTCAlphaNet.csv", delimiter=",", dtype=float)[0:2500]
     np.random.shuffle(data)
     # print(f'DATA0: {data[0]}')
 
     users = []
     edges = []
-    seed_node = data[0,0]
+
+
     for idx, (a,b,c) in enumerate(data):
         users.append(a)
         edges.append((a,b))
@@ -35,5 +36,11 @@ def set_G():
             G.add_edge(i,x,sign = '-')
 
         edge_labels[i,x] = attr['sign']
+
+    degree = sorted(G.degree, key=lambda asd: asd[1], reverse=True)
+    # print(degree)
+    seed_node = degree[0][0]
+    # print(seed_node)
+
 
     return G, edge_labels, seed_node, users, edges
