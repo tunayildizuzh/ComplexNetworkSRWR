@@ -8,6 +8,7 @@ from readdata import set_G
 import pandas as pd
 import seaborn as sns
 from collections import OrderedDict
+from readdata import data_settings
 
 
 def set_watts_strogatz(n, k, p): # Create a Watts Strogatz Network and assign signs to its edges.
@@ -37,7 +38,7 @@ def set_watts_strogatz(n, k, p): # Create a Watts Strogatz Network and assign si
 
 
 
-def comparison_dict(seed_node,rd_val,graph_nodes):
+def comparison_dict(seed_node,rd_val,graph_nodes): # SRWR Scores of the seed node to the other nodes.
     comparison = {}
 
     for idx, val in enumerate(graph_nodes):
@@ -53,7 +54,7 @@ def comparison_dict(seed_node,rd_val,graph_nodes):
     return comparison
 
 
-def accuracy(seed_node,rd_val,graph_nodes,edge_attributes):
+def accuracy(seed_node,rd_val,graph_nodes,edge_attributes): # SRWR sign prediction comparison to real data signs.
     count = 0
     true = 0
 
@@ -75,21 +76,20 @@ Part 1: Working with a synthetic network to check if SRWR works.
 #
 # graph = set_watts_strogatz(10,4,0.05)
 # simulation = Simulation(graph[0],seed_node=1,c=0.15,beta=0.1,gamma=0.1,epsilon=0.1)
-#
-#
+
+
 # print(f"Initial State: {nx.get_edge_attributes(simulation.G,'sign')}")
 # print(simulation.nodes)
 # simulation.remove_edge(simulation.seed_node,0.5)
-#
+
 # simulation.normalize()
 # iterate = simulation.iterate(simulation.normalize()[0],simulation.normalize()[1],simulation.seed_node)
 # rd = iterate[1] - iterate[0]
-#
+
 # edge_attr = nx.get_edge_attributes(simulation.G,'sign')
 # print(f'Accuracy Percentage: {accuracy(simulation.seed_node,rd,simulation.nodes,edge_attr)}%')
 # print(edge_attr)
-#
-#
+
 # pos = nx.spring_layout(simulation.G)
 # nx.draw_networkx(simulation.G,pos,with_labels=True)
 # nx.draw_networkx_edge_labels(simulation.G,pos,edge_labels=edge_attr,font_color='red',font_weight='bold')
@@ -103,9 +103,9 @@ Part 2: Use a real network for SRWR application.
 """
 
 graph_network = set_G()
-def run(beta, gamma, epsilon,step=0): # 0.3,0.5,0.1
-
-    print(f'Seed Node: {graph_network[2]}')
+def run(beta, gamma, epsilon,step=0): # Runs the Simulation.
+    if step == 1:
+        print(f'Seed Node: {graph_network[2]}')
     simulate = Simulation(graph_network[0],seed_node=graph_network[2],c=0.15,beta=beta,gamma=gamma,epsilon=epsilon)
     edge_attributes = nx.get_edge_attributes(simulate.G, 'sign')
     if step == 1:
@@ -119,38 +119,22 @@ def run(beta, gamma, epsilon,step=0): # 0.3,0.5,0.1
 
 parameter_values = np.arange(1,11,1)
 accuracies = np.zeros((10,10))
-
-for index,value in enumerate(parameter_values): # X = beta Y = Gamma
+step_iter = 1
+for index,value in enumerate(parameter_values): # X = beta Y = Gamma. Looks for the best beta and gamma values
     for index2,value2 in enumerate(parameter_values):
         print(f'beta,gamma: {value,value2}')
-        accuracies[index,index2] = run(value,value2,0.1)
+        accuracies[index,index2] = run(value,value2,0.1,0)
+        step_iter = 0
+
+df = pd.DataFrame(accuracies)
+ax = sns.heatmap(df, annot = True)
+ax.set(xlabel='Beta',ylabel='Gamma')
+plt.savefig('accuracies_parameter.png')
 
 param = np.where(accuracies == np.amax(accuracies))
 print(f'PARAM: {param}')
 
-run(param[0][0],param[1][0],0.1,1)
+run(param[0][0],param[1][0],0.1,1) # Runs the simulation again with the most optimal beta and gamma values to get highest accuracy.
 
 
-''' 
-BETA, GAMMA PARAMETER SELECTION
-
-# parameter_values = np.arange(1,11,1)
-# accuracies = np.zeros((10,10))
-# 
-# for index,value in enumerate(parameter_values): # X = beta Y = Gamma
-#     for index2,value2 in enumerate(parameter_values):
-#         print(f'beta,gamma: {value,value2}')
-#         accuracies[index,index2] = run(value,value2,0.1)
-# 
-# 
-# plt.savefig('accuracies_parameter.png')
-# df = pd.DataFrame(accuracies)
-# 
-# ax = sns.heatmap(df, annot = True)
-# ax.set(xlabel='Beta',ylabel='Gamma')
-# 
-# plt.show()
-
-'''
-
-
+# data_settings() # For plots

@@ -10,6 +10,27 @@ edges = set_G()[4]
 
 
 class Simulation:
+    '''
+    SRWR Simulation.
+
+    G: Networkx Graph.
+
+    seed_node: int
+        The node that the walk starts. Picked by degree centrality hierarchy.
+
+    c: float
+        The restart probability of the walker.
+
+    beta: float
+        Balance attenuation factor. Parameter of the uncertainty of 'the enemy of my enemy is my friend'.
+
+    gamma: float
+        Balance attenuation factor. Parameter of the uncertainty of 'the friend of my enemy is my enemy'.
+
+    epsilon: float
+        Walk iteration continues until convergence is smaller than epsilon.
+    '''
+
 
     def __init__(self, G, seed_node,c,beta,gamma,epsilon):
         self.seed_node = seed_node
@@ -58,11 +79,9 @@ class Simulation:
         r_plus = q
         r_negative = np.zeros(self.G.number_of_nodes())
         r_prime = np.vstack((r_plus,r_negative))
-        delta = 500
 
 
-
-        for i in range(50):
+        for i in range(70):
         # while np.all(delta<self.epsilon) == False:
 
             # r_plus = (1-c) * ((np.matmul(A_plus,r_plus)) + (np.matmul(A_negative,r_negative))) + c*q
@@ -76,17 +95,13 @@ class Simulation:
             r_prime = r
 
 
-
-        # print(f'r_plus:{r_plus}')
-        # print(f'r_negative:{r_negative}')
-        # print(f"rp-rn: {r_plus - r_negative}")
         return r_plus, r_negative
 
-    def remove_edge(self,node=0, percent = 0.2):
+    def remove_edge(self,node=0, percent = 0.2): # Removes the edges of a node by percentage of their total edge count.
         degree = sorted(self.G.degree, key=lambda asd: asd[1], reverse=True)
         print(f'remove edge degree: {degree[0]}')
 
-        deleted_edge_count = int(degree[0][1] * percent)
+        deleted_edge_count = int(degree[0][1] * percent * 0.7)
         print(f'DELETED {deleted_edge_count}')
         # neighs = list(nx.neighbors(self.G, node))
         neighs = list(self.G.neighbors(node))
