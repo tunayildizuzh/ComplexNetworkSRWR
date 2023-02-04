@@ -6,7 +6,7 @@ import collections
 import random
 
 def set_G():
-    data = np.genfromtxt("/Users/tunayildiz/Desktop/UZH/ComplexNetworkSRWR/dataset/BTCAlphaNet.csv", delimiter=",", dtype=float)[0:4000]
+    data = np.genfromtxt("/Users/tunayildiz/Desktop/UZH/ComplexNetworkSRWR/dataset/BTCAlphaNet.csv", delimiter=",", dtype=float)
     np.random.shuffle(data)
     # print(f'DATA0: {data[0]}')
 
@@ -72,7 +72,7 @@ def data_settings():
 
 
 
-    '''CCDF '''
+    '''CCDF Plot '''
     degree_sequence = sorted([d for n, d in G.degree()], reverse=True)  # degree sequence
     degreeCount = collections.Counter(degree_sequence)
     deg, cnt = zip(*degreeCount.items())

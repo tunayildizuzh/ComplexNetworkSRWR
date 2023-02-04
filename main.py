@@ -38,7 +38,7 @@ def set_watts_strogatz(n, k, p): # Create a Watts Strogatz Network and assign si
 
 
 
-def comparison_dict(seed_node,rd_val,graph_nodes): # SRWR Scores of the seed node to the other nodes.
+def comparison_dict(seed_node,rd_val,graph_nodes): # SRWR Scores with respect to the seed node.
     comparison = {}
 
     for idx, val in enumerate(graph_nodes):
@@ -71,38 +71,40 @@ def accuracy(seed_node,rd_val,graph_nodes,edge_attributes): # SRWR sign predicti
 
 
 """
-Part 1: Working with a synthetic network to check if SRWR works.
+Part 1: Working with a synthetic Watts-Strogatz network to check if SRWR works.
 """
 #
-# graph = set_watts_strogatz(10,4,0.05)
+# graph = set_watts_strogatz(8,5,0.05)
 # simulation = Simulation(graph[0],seed_node=1,c=0.15,beta=0.1,gamma=0.1,epsilon=0.1)
-
-
+#
+#
 # print(f"Initial State: {nx.get_edge_attributes(simulation.G,'sign')}")
-# print(simulation.nodes)
-# simulation.remove_edge(simulation.seed_node,0.5)
-
+#
+# simulation.remove_edge(simulation.seed_node,0.8)
+#
 # simulation.normalize()
 # iterate = simulation.iterate(simulation.normalize()[0],simulation.normalize()[1],simulation.seed_node)
 # rd = iterate[1] - iterate[0]
-
+#
 # edge_attr = nx.get_edge_attributes(simulation.G,'sign')
 # print(f'Accuracy Percentage: {accuracy(simulation.seed_node,rd,simulation.nodes,edge_attr)}%')
 # print(edge_attr)
-
+#
 # pos = nx.spring_layout(simulation.G)
 # nx.draw_networkx(simulation.G,pos,with_labels=True)
 # nx.draw_networkx_edge_labels(simulation.G,pos,edge_labels=edge_attr,font_color='red',font_weight='bold')
 # plt.show()
-#
+
 
 
 
 """
-Part 2: Use a real network for SRWR application.
+Part 2: Use a real network BitcoinAlpha for SRWR score link prediction.
 """
 
 graph_network = set_G()
+clustering_coefficient = nx.clustering(graph_network[0],4)
+# print(f'Clustering Coefficient: {clustering_coefficient}')
 def run(beta, gamma, epsilon,step=0): # Runs the Simulation.
     if step == 1:
         print(f'Seed Node: {graph_network[2]}')
@@ -123,7 +125,7 @@ step_iter = 1
 for index,value in enumerate(parameter_values): # X = beta Y = Gamma. Looks for the best beta and gamma values
     for index2,value2 in enumerate(parameter_values):
         print(f'beta,gamma: {value,value2}')
-        accuracies[index,index2] = run(value,value2,0.1,0)
+        accuracies[index,index2] = run(value,value2,0.1,1)
         step_iter = 0
 
 df = pd.DataFrame(accuracies)
